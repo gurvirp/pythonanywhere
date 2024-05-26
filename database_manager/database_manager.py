@@ -1,0 +1,105 @@
+import mysql.connector
+
+# The Database Manager class controls access to the database.  You
+# can only write or read from the database using this class.
+class Database_Manager:
+    # Class member variables needed for database connection
+    username = "gurvir"
+    password = "Hamilton1@@"
+    hostname = "gurvir.mysql.pythonanywhere-services.com"
+    database_name = "gurvir$f1_champions"
+
+    def __init__(self):
+      self.createDatabaseTables()
+
+
+    def createDatabaseTables(self):
+
+        # Drop the current tables, they must be dropped in a certain order due to dependencies
+        self.execute_sql("DROP TABLE IF EXISTS f1_world_champions")
+        self.execute_sql("DROP TABLE IF EXISTS f1_years")
+
+        # Recreate f1_years table
+
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS f1_years (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            year INT
+
+        )
+        """
+        self.execute_sql(create_table_query)
+
+        # Recreate f1_world_champions table
+
+        # Define the SQL query to create the table
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS f1_world_champions (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            year_id INT,
+            driver_name VARCHAR(255),
+            FOREIGN KEY(year_id) REFERENCES f1_years(id)
+        )
+        """
+        # Create the table
+        self.execute_sql(create_table_query)
+
+    def execute_sql(self,sql_query):
+        try:
+
+            # Create a connection
+            connection = mysql.connector.connect(
+                user=Database_Manager.username,
+                password=Database_Manager.password,
+                host=Database_Manager.hostname,
+                database=Database_Manager.database_name)
+
+            # Create a cursor
+            cursor = connection.cursor()
+
+            # Execute the query
+            cursor.execute(sql_query)
+
+            # Commit changes
+            connection.commit()
+
+            # Close the cursor and connection
+            cursor.close()
+            connection.close()
+
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+
+
+    def storeF1ChampionsData(self,champions_data):
+        # Create a connection
+        connection = mysql.connector.connect(
+            user=Database_Manager.username,
+            password=Database_Manager.password,
+            host=Database_Manager.hostname,
+            database=Database_Manager.database_name)
+
+        # Create a cursor
+        cursor = connection.cursor()
+
+        for champion in champions_data:
+            year = int(champion["season"])
+            for driver in champion['DriverStandings']:
+                driver_name = f"{driver['Driver']['givenName']} {driver['Driver']['familyName']}"
+
+            # Update the year table first
+            cursor.execute("INSERT INTO f1_years (year) VALUES (%s)", (year,))
+            connection.commit()
+            # Now get the id for the year
+            sql_query = "SELECT id FROM f1_years WHERE year=(%s)"
+            cursor.execute(sql_query, (year,))
+            # Fetch result
+            year_id = cursor.fetchone()
+            cursor.execute("INSERT INTO f1_world_champions (year_id,driver_name) VALUES (%s,%s)", (year_id[0],driver_name))
+            connection.commit()
+
+        cursor.close
+        connection.close()
+
+
+
