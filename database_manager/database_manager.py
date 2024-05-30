@@ -101,5 +101,33 @@ class Database_Manager:
         cursor.close
         connection.close()
 
+    def getChampionsData(self):
+        # Create a connection
+        connection = mysql.connector.connect(
+            user=Database_Manager.username,
+            password=Database_Manager.password,
+            host=Database_Manager.hostname,
+            database=Database_Manager.database_name)
+
+        # Create a cursor
+        cursor = connection.cursor()
+
+        sql_query = "SELECT driver_name FROM f1_world_champions"
+
+        # Execute the query
+        cursor.execute(sql_query)
+
+        # Fetch all the results into a list
+        results = cursor.fetchall()
+
+        # Extract the DriverNames from the results
+        championsData = [row[0] for row in results]
+
+        # Close the cursor and connection
+        cursor.close()
+        connection.close()
+
+        return championsData
+
 
 
