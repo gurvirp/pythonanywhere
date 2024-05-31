@@ -18,6 +18,7 @@ class Database_Manager:
         # Drop the current tables, they must be dropped in a certain order due to dependencies
         self.execute_sql("DROP TABLE IF EXISTS f1_world_champions")
         self.execute_sql("DROP TABLE IF EXISTS f1_years")
+        self.execute_sql("DROP TABLE IF EXISTS f1_current_circuits")
 
         # Recreate f1_years table
 
@@ -42,6 +43,18 @@ class Database_Manager:
         )
         """
         # Create the table
+        self.execute_sql(create_table_query)
+
+         # Recreate F1 Circuits table
+
+        # Define the SQL query to create the table
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS f1_current_circuits (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            circuit_name VARCHAR(255),
+            grand_prix VARCHAR(255)
+        )
+        """
         self.execute_sql(create_table_query)
 
     def execute_sql(self,sql_query):
@@ -128,6 +141,25 @@ class Database_Manager:
         connection.close()
 
         return championsData
+
+    def storeF1CurrentCircuitsData(self,circuitsData):
+        # Create a connection
+        connection = mysql.connector.connect(
+            user=Database_Manager.username,
+            password=Database_Manager.password,
+            host=Database_Manager.hostname,
+            database=Database_Manager.database_name)
+
+        # Create a cursor
+        cursor = connection.cursor()
+
+        # Loop through the circuits storing the data in the database
+        for circuitName, grandPrix in circuitsData.items():
+            cursor.execute("INSERT INTO f1_current_circuits (circuit_name,grand_prix) VALUES (%s,%s)", (circuitName,grandPrix))
+            connection.commit()
+
+        cursor.close()
+        connection.close()
 
 
 

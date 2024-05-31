@@ -30,6 +30,5 @@ def process_item():
 
 
 theDatabaseManager = Database_Manager()
-my_historic_data_manager = Historic_Data_Manager(theDatabaseManager)
-champions_data = my_historic_data_manager.obtainF1ChampionsData()
-theDatabaseManager.storeF1ChampionsData(champions_data)
+theHistoricDataManager = Historic_Data_Manager(theDatabaseManager)
+theHistoricDataManager.updateHistoricData()
